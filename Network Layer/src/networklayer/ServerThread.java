@@ -224,6 +224,7 @@ public class ServerThread implements Runnable {
                 RouterStateChanger.lock.lock();
                 NetworkLayerServer.DVR(currentRouterID);
                 RouterStateChanger.lock.unlock();
+                path.append("[DROPPED]");
                 return false;
             }
         }
