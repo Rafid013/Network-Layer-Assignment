@@ -88,7 +88,9 @@ public class ServerThread implements Runnable {
                     else {
                         output.writeObject("failure");
                         if(packet.getSpecialMessage().compareTo("SHOW_ROUTE") == 0) {
-
+                            output.writeObject(path.toString());
+                            output.writeObject(NetworkLayerServer.routers.size());
+                            for (Router router : NetworkLayerServer.routers) output.writeObject(router);
                         }
                     }
                 }
@@ -185,6 +187,7 @@ public class ServerThread implements Runnable {
     private boolean forwardPacket(int srcID, int destID) {
         hop_count = 0;
         path = new StringBuilder("Source: " + srcID + "; Destination: " + destID + "; Route: ");
+        if(srcID == -1 && destID == -1) return false;
         if(!NetworkLayerServer.routerMap.get(srcID).getState()) {
             path.append("[DROPPED AT SOURCE]");
             return false;
