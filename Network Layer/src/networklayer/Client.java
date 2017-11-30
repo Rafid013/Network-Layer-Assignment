@@ -37,6 +37,7 @@ public class Client {
         ObjectOutputStream output;
         double drop_count = 0;
         double total_hops = 0;
+        int sentSuccessfully = 0;
         try {
             socket = new Socket("localhost", 1234);
             input = new ObjectInputStream(socket.getInputStream());
@@ -98,6 +99,7 @@ public class Client {
                             System.out.println("Router ID: " + temp.getRouterId());
                             temp.printRoutingTable();
                         }
+                        sentSuccessfully++;
                     }
                     else {
                         String path = (String) input.readObject();
@@ -120,12 +122,14 @@ public class Client {
                         Integer hop_count = (Integer)input.readObject();
                         total_hops += hop_count;
                         System.out.println("Hop Count: " + hop_count);
+                        sentSuccessfully++;
                     }
                     else {
                         System.out.println("Packet dropped");
                         drop_count++;
                     }
                 }
+                System.out.println("\n");
                 Thread.sleep(1500);
             }
         } catch (Exception e) {
@@ -139,7 +143,7 @@ public class Client {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("Average number of hops: " + total_hops/100);
+        System.out.println("Average number of hops: " + total_hops/sentSuccessfully);
         System.out.println("Drop rate: " + drop_count);
     }
 }
