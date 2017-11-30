@@ -37,7 +37,7 @@ public class Client {
         ObjectOutputStream output;
         double drop_count = 0;
         double total_hops = 0;
-        int sentSuccessfully = 0;
+        double sentSuccessfully = 0;
         try {
             socket = new Socket("localhost", 1234);
             input = new ObjectInputStream(socket.getInputStream());
@@ -144,6 +144,7 @@ public class Client {
             e.printStackTrace();
         }
         System.out.println("Average number of hops: " + total_hops/sentSuccessfully);
+        System.out.println("Success rate: " + sentSuccessfully);
         System.out.println("Drop rate: " + drop_count);
     }
 }

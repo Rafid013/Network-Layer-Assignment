@@ -25,10 +25,11 @@ public class ServerThread implements Runnable {
     private ObjectInputStream input;
     private ObjectOutputStream output;
     private EndDevice endDevice;
-    private StringBuilder path;
+    private String path;
     private int hop_count;
+    private int clientNo;
     
-    public ServerThread(Socket socket, EndDevice endDevice){
+    public ServerThread(Socket socket, EndDevice endDevice, int clientNo){
         
         this.socket = socket;
         this.endDevice = endDevice;
@@ -39,6 +40,7 @@ public class ServerThread implements Runnable {
         } catch (IOException ex) {
             Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
         }
+        this.clientNo = clientNo;
         System.out.println("Server Ready for client "+NetworkLayerServer.clientCount);
         NetworkLayerServer.clientCount++;
         t=new Thread(this);
@@ -76,7 +78,7 @@ public class ServerThread implements Runnable {
                     if (delivered) {
                         output.writeObject("success");
                         if (packet.getSpecialMessage().compareTo("SHOW_ROUTE") == 0) {
-                            output.writeObject(path.toString());
+                            output.writeObject(path);
                             output.writeObject(hop_count);
                             output.writeObject(NetworkLayerServer.routers.size());
                             for (Router router : NetworkLayerServer.routers) output.writeObject(router);
@@ -88,7 +90,7 @@ public class ServerThread implements Runnable {
                     else {
                         output.writeObject("failure");
                         if(packet.getSpecialMessage().compareTo("SHOW_ROUTE") == 0) {
-                            output.writeObject(path.toString());
+                            output.writeObject(path);
                             output.writeObject(NetworkLayerServer.routers.size());
                             for (Router router : NetworkLayerServer.routers) output.writeObject(router);
                         }
@@ -99,6 +101,7 @@ public class ServerThread implements Runnable {
                     NetworkLayerServer.clientCount--;
                     NetworkLayerServer.clientInterfaces.replace(endDevice.getGateway(),
                             NetworkLayerServer.clientInterfaces.get(endDevice.getGateway()) - 1);
+                    System.out.println("Client " + clientNo + " disconnected");
                     break;
                 }
             } catch (Exception e) {
@@ -107,6 +110,7 @@ public class ServerThread implements Runnable {
                 NetworkLayerServer.clientCount--;
                 NetworkLayerServer.clientInterfaces.replace(endDevice.getGateway(),
                         NetworkLayerServer.clientInterfaces.get(endDevice.getGateway()) - 1);
+                System.out.println("Client " + clientNo + " disconnected");
                 break;
             }
         }
@@ -186,48 +190,52 @@ public class ServerThread implements Runnable {
 
     private boolean forwardPacket(int srcID, int destID) {
         hop_count = 0;
-        path = new StringBuilder("Source: " + srcID + "; Destination: " + destID + "; Route: ");
+        path = "Source: " + srcID + "; Destination: " + destID + "; Route: ";
         if(srcID == -1 && destID == -1) return false;
         if(!NetworkLayerServer.routerMap.get(srcID).getState()) {
-            path.append("[DROPPED AT SOURCE]");
+            path += "[DROPPED AT SOURCE]";
             return false;
         }
         if(srcID == destID) {
-            path.append(srcID);
-            path.append("->");
-            path.append(destID);
+            path += (srcID + "->" + destID);
             return true;
         }
         int currentRouterID = srcID;
-        path.append(srcID);
+        path += srcID;
         boolean destReached = false;
         while (!destReached) {
             Router currentRouter = NetworkLayerServer.routerMap.get(currentRouterID);
+            if(!currentRouter.getState()) {
+                path += "[DROPPED]";
+                return false;
+            }
             Map<Integer, RoutingTableEntry> routingTableMap = currentRouter.getRoutingTableMap();
             RoutingTableEntry rte = routingTableMap.get(destID);
             if(rte.getDistance() == Constants.INFTY) {
-                path.append("[DROPPED]");
+                path += "[DROPPED]";
                 return false;
             }
             Router gatewayRouter = NetworkLayerServer.routerMap.get(rte.getGatewayRouterId());
             if(gatewayRouter.getState()) {
                 if(reverseInfty(gatewayRouter, currentRouterID)){
                     RouterStateChanger.lock.lock();
-                    NetworkLayerServer.DVR(gatewayRouter.getRouterId());
+                    //NetworkLayerServer.DVR(gatewayRouter.getRouterId());
+                    NetworkLayerServer.simpleDVR(gatewayRouter.getRouterId());
                     RouterStateChanger.lock.unlock();
                 }
                 hop_count++;
                 currentRouterID = gatewayRouter.getRouterId();
-                path.append("->");
-                path.append(currentRouterID);
+                path += ("->" + currentRouterID);
                 if(currentRouterID == destID) destReached = true;
             }
             else {
                 rte.setDistance(Constants.INFTY);
+                rte.setGatewayRouterId(-1);
                 RouterStateChanger.lock.lock();
-                NetworkLayerServer.DVR(currentRouterID);
+                //NetworkLayerServer.DVR(currentRouterID);
+                NetworkLayerServer.simpleDVR(currentRouterID);
                 RouterStateChanger.lock.unlock();
-                path.append("[DROPPED]");
+                path += "[DROPPED]";
                 return false;
             }
         }

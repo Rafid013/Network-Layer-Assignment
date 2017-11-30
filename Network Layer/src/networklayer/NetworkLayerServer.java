@@ -62,8 +62,8 @@ public class NetworkLayerServer {
         /**
          * Update routing table using distance vector routing until convergence
          */
-        DVR(1);
-        //simpleDVR(1);
+        //DVR(1);
+        simpleDVR(1);
         
         /**
          * Starts a new thread which turns on/off routers randomly depending on parameter Constants.LAMBDA
@@ -74,7 +74,7 @@ public class NetworkLayerServer {
             try {
                 Socket clientSock = serverSocket.accept();
                 System.out.println("Client attempted to connect");
-                new ServerThread(clientSock, getClientDeviceSetup());
+                new ServerThread(clientSock, getClientDeviceSetup(), clientCount);
             } catch (IOException ex) {
                 Logger.getLogger(NetworkLayerServer.class.getName()).log(Level.SEVERE, null, ex);
             }

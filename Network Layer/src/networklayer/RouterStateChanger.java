@@ -37,12 +37,11 @@ public class RouterStateChanger implements Runnable{
             {
                 revertRandomRouter();
             }
+            lock.unlock();
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException ex) {
                 Logger.getLogger(RouterStateChanger.class.getName()).log(Level.SEVERE, null, ex);
-            } finally {
-                lock.unlock();
             }
         }
     }
