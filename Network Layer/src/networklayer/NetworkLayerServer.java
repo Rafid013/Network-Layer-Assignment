@@ -62,8 +62,8 @@ public class NetworkLayerServer {
         /**
          * Update routing table using distance vector routing until convergence
          */
-        //DVR(1);
-        simpleDVR(1);
+        DVR(1);
+        //simpleDVR(1);
         
         /**
          * Starts a new thread which turns on/off routers randomly depending on parameter Constants.LAMBDA

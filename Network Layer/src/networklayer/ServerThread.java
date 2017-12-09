@@ -219,8 +219,8 @@ public class ServerThread implements Runnable {
             if(gatewayRouter.getState()) {
                 if(reverseInfty(gatewayRouter, currentRouterID)){
                     RouterStateChanger.lock.lock();
-                    //NetworkLayerServer.DVR(gatewayRouter.getRouterId());
-                    NetworkLayerServer.simpleDVR(gatewayRouter.getRouterId());
+                    NetworkLayerServer.DVR(gatewayRouter.getRouterId());
+                    //NetworkLayerServer.simpleDVR(gatewayRouter.getRouterId());
                     RouterStateChanger.lock.unlock();
                 }
                 hop_count++;
@@ -232,8 +232,8 @@ public class ServerThread implements Runnable {
                 rte.setDistance(Constants.INFTY);
                 rte.setGatewayRouterId(-1);
                 RouterStateChanger.lock.lock();
-                //NetworkLayerServer.DVR(currentRouterID);
-                NetworkLayerServer.simpleDVR(currentRouterID);
+                NetworkLayerServer.DVR(currentRouterID);
+                //NetworkLayerServer.simpleDVR(currentRouterID);
                 RouterStateChanger.lock.unlock();
                 path += "[DROPPED]";
                 return false;
