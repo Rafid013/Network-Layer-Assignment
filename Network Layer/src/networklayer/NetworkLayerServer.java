@@ -139,7 +139,7 @@ public class NetworkLayerServer {
             }
             for(int i = 0; i < routers.size(); ++i) {
                 if(i == 0) convergence = !routers.get(i).isTableChanged();
-                else convergence &= !routers.get(i).isTableChanged();
+                else convergence = convergence && !routers.get(i).isTableChanged();
             }
         }
     }

@@ -224,6 +224,10 @@ public class ServerThread implements Runnable {
                     RouterStateChanger.lock.unlock();
                 }
                 hop_count++;
+                if(hop_count == Constants.INFTY) {
+                    path += "[DROPPED]";
+                    return false;
+                }
                 currentRouterID = gatewayRouter.getRouterId();
                 path += ("->" + currentRouterID);
                 if(currentRouterID == destID) destReached = true;
